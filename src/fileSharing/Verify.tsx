@@ -1,28 +1,35 @@
 import React, { useState } from "react";
 import Axios from "axios";
-import {  useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { BASE_URL } from "../App";
 
 const Verify: React.FC = () => {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const [fileId, setFileId] = useState("");
-
-
+  const [verified, setVerifield] = useState(
+    localStorage.getItem("FV") ? localStorage.getItem("FV") : false
+  );
 
   const [loading, setLoading] = useState(false);
-  const location = useLocation().state;
+  const params = useParams() as { fileId: string };
+
+  console.log("=====parsamsssss", params.fileId);
 
   const onSubmit = async () => {
     try {
       setLoading(true);
-      if (location && location.fileLink) {
-        const { data } = await Axios.post(location.fileLink,{password});
-   
+      if (params && params.fileId) {
+        const { data } = await Axios.post(
+          BASE_URL.concat(`verify/file/${params.fileId}`),
+          { password }
+        );
+        console.log("responseeeeeee", data);
         if (data && data.success) {
-          setFileId(data.data);
-          alert("verify successfully");
-        }else{
-          alert();
-
+          setVerifield(data.data);
+          localStorage.setItem("FV", data.data);
+        } else {
+          alert(data.message);
+          navigate(data.url);
         }
       }
       setLoading(false);
@@ -32,11 +39,11 @@ const Verify: React.FC = () => {
     setLoading(false);
   };
 
-  const downloadHandler=()=>{
-    window.open("http://localhost:3020/download/".concat(fileId))
-  }
+  const downloadHandler = () => {
+    window.open(BASE_URL.concat("download/").concat(params.fileId));
+  };
 
-  console.log("======fileIdfileId",fileId);
+  console.log("=password", password);
 
   return (
     <div className="col-6 mx-auto mt-5 shadow">
@@ -46,12 +53,13 @@ const Verify: React.FC = () => {
         </div>
         <div className="card-body">
           <div className="col-6 mx-auto">
-            {fileId && fileId!=="" ? (
-              <i 
-              className=" fs-2 bi bi-cloud-arrow-down"
-               title="Download File"
-                style={{cursor:"pointer"}}
-                onClick={downloadHandler} ></i>
+            {verified ? (
+              <i
+                className=" fs-2 bi bi-cloud-arrow-down"
+                title="Download File"
+                style={{ cursor: "pointer" }}
+                onClick={downloadHandler}
+              ></i>
             ) : (
               <>
                 <input
@@ -65,13 +73,16 @@ const Verify: React.FC = () => {
                 <button
                   className="btn btn-outline-info mt-4"
                   onClick={onSubmit}
-                //   disabled={loading}
+                  //   disabled={loading}
                 >
-                    Verify {" "}
+                  Verify{" "}
                   {loading && (
-                   <div className="spinner-border spinner-border-sm" role="status">
-                   <span className="visually-hidden">Loading...</span>
-                 </div>
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      role="status"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
                   )}
                 </button>
               </>

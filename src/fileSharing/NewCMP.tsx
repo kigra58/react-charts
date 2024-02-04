@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Axios from "axios";
 import { Link } from "react-router-dom";
-
+import { BASE_URL } from "../App";
 
 const NewCMP: React.FC = () => {
   const [file, setFile] = useState<FileList>();
   const [password, setPassword] = useState("");
-  const [fileLink, setFileLink] = useState("");
+  const [fileData, setFileData] = useState({
+    fileLink: "",
+    fileId: "",
+  });
   const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const blob = e.target.files;
     if (blob && blob.length > 0) {
@@ -16,16 +19,25 @@ const NewCMP: React.FC = () => {
 
   const onSubmit = async () => {
     if (file && file.length) {
-      const form = new FormData();
-      form.append("file", file[0]);
-      form.append("password", password);
-      const { data } = await Axios.post("http://localhost:3020/upload", form);
-      if (data && data.success) {
-        setFileLink(data.data);
+      if (password && password !== "") {
+        const form = new FormData();
+        file && form.append("file", file[0]);
+        form.append("password", password);
+        const { data } = await Axios.post(BASE_URL.concat("upload"), form);
+        console.log("======Resssssssss", data);
+        if (data && data.success) {
+          // const { fileLink, fileId } = ;
+          setFileData(data.data);
+        } else {
+          alert(data.message);
+        }
+      } else {
+        alert("Please Enter Password for file encryption");
       }
+    } else {
+      alert("Please select your file");
     }
   };
-
 
   return (
     <div>
@@ -35,10 +47,29 @@ const NewCMP: React.FC = () => {
             <h5> File Sharing </h5>
           </div>
           <div className="card-body">
-            {fileLink && fileLink !== "" ? (
+            {fileData.fileLink && fileData.fileLink !== "" ? (
               <div className="text-center">
-                <Link to="/download" state={{fileLink}} > <h4> Download File </h4></Link> 
-                <i className="fs-1 bi bi-download"></i>
+                {fileData.fileLink && fileData.fileLink !== "" && (
+                  <h6> {fileData.fileLink} </h6>
+                )}
+                {fileData.fileLink && fileData.fileLink !== "" && (
+                  <i
+                    className="bi bi-clipboard fs-4 mx-3"
+                    style={{ cursor: "pointer" }}
+                    title="Copy File URL"
+                    onClick={() => {
+                      navigator.clipboard.writeText(fileData.fileLink);
+                      alert("copied :" + fileData.fileLink);
+                    }}
+                  />
+                )}
+                <Link to={`/download/`.concat(fileData.fileId)}>
+                  <h5> Download File </h5>
+                  <i
+                    className="fs-2 bi bi-download"
+                    style={{ cursor: "pointer" }}
+                  ></i>
+                </Link>
               </div>
             ) : (
               <div className="col-6 mx-auto">
@@ -63,7 +94,7 @@ const NewCMP: React.FC = () => {
                   onClick={onSubmit}
                   type="button"
                 >
-                  Share File
+                  Upload File
                 </button>
               </div>
             )}
