@@ -6,9 +6,7 @@ import { BASE_URL } from "../App";
 const Verify: React.FC = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const [verified, setVerifield] = useState(
-    localStorage.getItem("FV") ? localStorage.getItem("FV") : false
-  );
+  const [verified, setVerifield] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const params = useParams() as { fileId: string };
@@ -26,7 +24,7 @@ const Verify: React.FC = () => {
         console.log("responseeeeeee", data);
         if (data && data.success) {
           setVerifield(data.data);
-          localStorage.setItem("FV", data.data);
+          // localStorage.setItem("FV", data.data);
         } else {
           alert(data.message);
           navigate(data.url);
@@ -40,7 +38,7 @@ const Verify: React.FC = () => {
   };
 
   const downloadHandler = () => {
-    window.open(BASE_URL.concat("download/").concat(params.fileId));
+    window.open(BASE_URL.concat("file/").concat(params.fileId));
   };
 
   console.log("=password", password);
